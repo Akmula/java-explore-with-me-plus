@@ -36,7 +36,7 @@ public class StatsClient {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(endpointHit)
                 .retrieve()
-                .body(new ParameterizedTypeReference<Object>() {
+                .body(new ParameterizedTypeReference<>() {
                 });
     }
 
