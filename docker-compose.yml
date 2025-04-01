@@ -1,14 +1,84 @@
 services:
   stats-server:
+    build: stat-service/stats-server
+    image: stat-service
+    container_name: stat-service
     ports:
       - "9090:9090"
+    depends_on:
+      - stats-db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats-db
+      - POSTGRES_USER=stats
+      - POSTGRES_PASSWORD=stats
+      - DB_NAME=stats-db
+      - SPRING_DATASOURCE_USERNAME=stats
+      - SPRING_DATASOURCE_PASSWORD=stats
+      - DB_HOST=stats-db
+      - DB_PORT=6432
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9090/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
 
   stats-db:
     image: postgres:16.1
+    container_name: stats-db
+    ports:
+      - "6432:5432"
+    volumes:
+      - ./volumes/postgres:/stat-service
+    environment:
+      - POSTGRES_DB=stats-db
+      - POSTGRES_USER=stats
+      - POSTGRES_PASSWORD=stats
+    healthcheck:
+      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
 
-  ewm-service:
+  main-service:
+    build: main-service
+    image: main-service
+    container_name: main-service
     ports:
       - "8080:8080"
+    depends_on:
+      - main-db
+      - stats-server
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/main-db
+      - POSTGRES_USER=main
+      - POSTGRES_PASSWORD=main
+      - DB_NAME=main-db
+      - SPRING_DATASOURCE_USERNAME=main
+      - SPRING_DATASOURCE_PASSWORD=main
+      - DB_HOST=main-db
+      - DB_PORT6433
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
 
-  ewm-db:
+  main-db:
     image: postgres:16.1
+    container_name: main-db
+    ports:
+      - "6433:5432"
+    volumes:
+      - ./volumes/postgres:/main-service
+    environment:
+      - POSTGRES_DB=main-db
+      - POSTGRES_USER=main
+      - POSTGRES_PASSWORD=main
+    healthcheck:
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
+      timeout: 5s
+      interval: 5s
+      retries: 10
