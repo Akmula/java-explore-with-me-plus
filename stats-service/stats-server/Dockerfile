@@ -1,9 +1,5 @@
-# <image> — имя базового образа, например amazoncorretto
-# <tag> — тег — необязательный параметр, указывает конкретную версию образа (21)
-FROM amazoncorretto:21
-
-# копируем артефакт в образ и переименовываем его в app.jar
-COPY target/*.jar app.jar
-
-# указываем, какую команду выполнить при запуске контейнера
-ENTRYPOINT ["java","-jar","/app.jar"]
+FROM eclipse-temurin:21-jre-jammy
+VOLUME /tmp
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} -jar /app.jar"]
