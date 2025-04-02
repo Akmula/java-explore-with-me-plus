@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.EndpointHit;
 import ru.practicum.ViewStats;
 import ru.practicum.entity.QHit;
+import ru.practicum.exception.BadRequestException;
 import ru.practicum.mapper.EndpointHitMapper;
 import ru.practicum.param.RequestParams;
 import ru.practicum.repository.StatRepository;
@@ -44,6 +45,10 @@ public class StatServiceImpl implements StatService {
         LocalDateTime endTime = requestParams.getEnd();
         List<String> uris = requestParams.getUris();
         boolean unique = requestParams.isUnique();
+
+        if (startTime.isAfter(endTime)) {
+            throw new BadRequestException("Дата начала не может быть позже даты окончания!");
+        }
 
         QHit qHit = QHit.hit;
         BooleanExpression where = qHit.timestamp.between(startTime, endTime);
