@@ -4,27 +4,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Service
+@Component
 public class StatsClient {
 
     @Value("${stats-server.url}")
     private static String STATS_SERVER_URL;
 
-    private final RestClient restClient;
+    private final RestClient restClient = RestClient.create();
 
-    public StatsClient(RestClient restClient) {
+  /*  public StatsClient(RestClient restClient) {
         this.restClient = restClient;
-    }
+    }/**/
 
     public void save(EndpointHit endpointHit) {
-
         String uri = UriComponentsBuilder
                 .fromHttpUrl(STATS_SERVER_URL)
                 .path("/hit")
@@ -36,7 +35,7 @@ public class StatsClient {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(endpointHit)
                 .retrieve()
-                .body(new ParameterizedTypeReference<Object>() {
+                .body(new ParameterizedTypeReference<>() {
                 });
     }
 

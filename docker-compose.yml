@@ -1,8 +1,8 @@
 services:
   stats-server:
-    build: stat-service/stats-server
-    image: stat-service
-    container_name: stat-service
+    build: stats-service/stats-server
+    image: stats-service
+    container_name: stats-service
     ports:
       - "9090:9090"
     depends_on:
@@ -29,7 +29,7 @@ services:
     ports:
       - "6432:5432"
     volumes:
-      - ./volumes/postgres:/stat-service
+      - ./volumes/postgres:/stats-service
     environment:
       - POSTGRES_DB=stats-db
       - POSTGRES_USER=stats
@@ -41,23 +41,23 @@ services:
       start_period: 30s
       retries: 5
 
-  main-service:
+  ewm-service:
     build: main-service
-    image: main-service
-    container_name: main-service
+    image: ewm-service
+    container_name: ewm-service
     ports:
       - "8080:8080"
     depends_on:
-      - main-db
+      - ewm-db
       - stats-server
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/main-db
-      - POSTGRES_USER=main
-      - POSTGRES_PASSWORD=main
-      - DB_NAME=main-db
-      - SPRING_DATASOURCE_USERNAME=main
-      - SPRING_DATASOURCE_PASSWORD=main
-      - DB_HOST=main-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm-db
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
+      - DB_NAME=ewm-db
+      - SPRING_DATASOURCE_USERNAME=ewm
+      - SPRING_DATASOURCE_PASSWORD=ewm
+      - DB_HOST=ewm-db
       - DB_PORT6433
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
@@ -66,17 +66,17 @@ services:
       start_period: 30s
       retries: 5
 
-  main-db:
+  ewm-db:
     image: postgres:16.1
-    container_name: main-db
+    container_name: ewm-db
     ports:
       - "6433:5432"
     volumes:
-      - ./volumes/postgres:/main-service
+      - ./volumes/postgres:/ewm-service
     environment:
-      - POSTGRES_DB=main-db
-      - POSTGRES_USER=main
-      - POSTGRES_PASSWORD=main
+      - POSTGRES_DB=ewm-db
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
     healthcheck:
       test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       timeout: 5s
