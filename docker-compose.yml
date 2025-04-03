@@ -29,7 +29,7 @@ services:
     ports:
       - "6432:5432"
     volumes:
-      - ./volumes/postgres:/stats-service
+      - /volumes/postgres:/stats-service
     environment:
       - POSTGRES_DB=stats-db
       - POSTGRES_USER=stats
@@ -72,7 +72,7 @@ services:
     ports:
       - "6433:5432"
     volumes:
-      - ./volumes/postgres:/ewm-service
+      - /volumes/postgres:/main-service
     environment:
       - POSTGRES_DB=ewm-db
       - POSTGRES_USER=ewm

@@ -19,12 +19,9 @@ import java.util.Objects;
 public class ErrorHandler {
 
     @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handlerNotFoundException(final NotFoundException e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+        String stackTrace = getStackTrace(e);
         log.error("Ошибка: 404 NOT_FOUND - {}", stackTrace);
         return new ApiError("Объект не найден или недоступен", e.getMessage(),
                 HttpStatus.NOT_FOUND.name(), LocalDateTime.now());
@@ -33,10 +30,7 @@ public class ErrorHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handlerMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+        String stackTrace = getStackTrace(e);
         log.error("Ошибка валидации: 400 BAD_REQUEST - {}", stackTrace);
         return new ApiError("Запрос составлен некорректно",
                 Objects.requireNonNull(Objects.requireNonNull(e.getFieldError()).getDefaultMessage()),
@@ -46,10 +40,7 @@ public class ErrorHandler {
     @ExceptionHandler({MissingServletRequestParameterException.class, IllegalStateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handlerBadRequestException(final BadRequestException e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+        String stackTrace = getStackTrace(e);
         log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
         return new ApiError("Запрос составлен некорректно", e.getMessage(),
                 HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
@@ -58,24 +49,35 @@ public class ErrorHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handlerDataIntegrityViolationException(final DataIntegrityViolationException e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+        String stackTrace = getStackTrace(e);
         log.error("Ошибка: 409 CONFLICT - {}", stackTrace);
         return new ApiError("Нарушение целостности данных", e.getCause().getCause().getLocalizedMessage(),
+                HttpStatus.CONFLICT.name(), LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handlerConflictException(final ConflictException e) {
+        String stackTrace = getStackTrace(e);
+        log.error("Ошибка валидации: 409 CONFLICT - {}", stackTrace);
+        return new ApiError("Ошибка обновления!",
+                e.getMessage(),
                 HttpStatus.CONFLICT.name(), LocalDateTime.now());
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiError handlerException(final Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        e.printStackTrace(pw);
-        String stackTrace = sw.toString();
+        String stackTrace = getStackTrace(e);
         log.error("Ошибка: 500 INTERNAL_SERVER_ERROR - {}", stackTrace);
         return new ApiError("Неизвестная ошибка", e.getMessage(),
                 HttpStatus.INTERNAL_SERVER_ERROR.name(), LocalDateTime.now());
+    }
+
+    private static String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 }
