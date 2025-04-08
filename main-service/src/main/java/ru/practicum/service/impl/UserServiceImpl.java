@@ -42,13 +42,6 @@ public class UserServiceImpl implements UserService {
         Integer from = params.getFrom();
         Integer size = params.getSize();
 
-        if (from == null) {
-            from = 0;
-        }
-        if (size == null) {
-            size = 10;
-        }
-
         Pageable pageable = PageRequest.of(from / size, size);
 
         List<User> users;

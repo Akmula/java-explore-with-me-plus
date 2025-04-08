@@ -33,13 +33,13 @@ public class StatServiceImpl implements StatService {
     @Override
     @Transactional
     public void save(EndpointHit hit) {
-        log.info("Saving hit: {}", hit);
+        log.info("StatService - сохранение hit: {}", hit);
         repository.save(mapper.endpointToHit(hit));
     }
 
     @Override
     public List<ViewStats> getViewStats(RequestParams requestParams) {
-        log.info("Getting view stats");
+        log.info("StatService - получение статистики с параметрами: {}", requestParams);
 
         LocalDateTime startTime = requestParams.getStart();
         LocalDateTime endTime = requestParams.getEnd();
@@ -51,6 +51,7 @@ public class StatServiceImpl implements StatService {
         }
 
         QHit qHit = QHit.hit;
+
         BooleanExpression where = qHit.timestamp.between(startTime, endTime);
 
         if (uris != null && !uris.isEmpty()) {
@@ -60,12 +61,20 @@ public class StatServiceImpl implements StatService {
         JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
 
         if (unique) {
-            query.select(qHit.app, qHit.uri, qHit.ip.countDistinct());
+            query.select(qHit.app, qHit.uri, qHit.ip.countDistinct())
+                    .from(qHit)
+                    .where(where)
+                    .groupBy(qHit.app, qHit.uri)
+                    .orderBy(qHit.ip.countDistinct()
+                            .desc());
         } else {
-            query.select(qHit.app, qHit.uri, qHit.ip.count());
+            query.select(qHit.app, qHit.uri, qHit.ip.count())
+                    .from(qHit)
+                    .where(where)
+                    .groupBy(qHit.app, qHit.uri)
+                    .orderBy(qHit.ip.count()
+                            .desc());
         }
-
-        query.from(qHit).where(where).groupBy(qHit.app, qHit.uri).orderBy(qHit.ip.count().desc());
 
         List<Tuple> tuples = query.fetch();
 
