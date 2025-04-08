@@ -21,13 +21,13 @@ public class StatsController {
 
     @PostMapping(path = "/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@Valid @RequestBody EndpointHit hit) {
-        log.info("StatsController - сохранение endpoint hit {}", hit);
+    public void saveHit(@Valid @RequestBody EndpointHit hit) {
+        log.info("StatsController - сохранение hit {}", hit);
         service.save(hit);
     }
 
     @GetMapping(path = "/stats")
-    public List<ViewStats> getStats(@ModelAttribute RequestParams requestParams) {
+    public List<ViewStats> getStats(@ModelAttribute @Valid RequestParams requestParams) {
         log.info("StatsController - получение статистики с параметрами: {}", requestParams);
         return service.getViewStats(requestParams);
     }
