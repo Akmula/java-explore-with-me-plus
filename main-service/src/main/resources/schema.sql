@@ -1,6 +1,8 @@
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS compilations CASCADE;
+DROP TABLE IF EXISTS compilations_events CASCADE;
 
 CREATE TABLE IF NOT EXISTS users
 (
@@ -32,6 +34,24 @@ CREATE TABLE IF NOT EXISTS events
     created_date       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     published_date     TIMESTAMP WITHOUT TIME ZONE,
     event_date         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    FOREIGN KEY (initiator_id) REFERENCES users (id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES categories (id)
+    CONSTRAINT fk_events_to_users FOREIGN KEY (initiator_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_events_to_categories FOREIGN KEY (category_id) REFERENCES categories (id)
+);
+
+CREATE TABLE IF NOT EXISTS compilations
+(
+    id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY UNIQUE,
+    pinned BOOLEAN     NOT NULL DEFAULT false,
+    title  VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS compilations_events
+(
+    id             BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY UNIQUE,
+    event_id       BIGINT NOT NULL,
+    compilation_id BIGINT NOT NULL,
+    CONSTRAINT fk_compilations_events_to_events
+        FOREIGN KEY (event_id) REFERENCES events (id) ON UPDATE CASCADE,
+    CONSTRAINT fk_compilations_events_to_compilations
+        FOREIGN KEY (compilation_id) REFERENCES compilations (id) ON UPDATE CASCADE
 );
