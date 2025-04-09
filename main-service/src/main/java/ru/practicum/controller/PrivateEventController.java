@@ -5,11 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.NewEventDto;
-import ru.practicum.dto.UpdateEventUserRequest;
+import ru.practicum.dto.*;
 import ru.practicum.dto.params.PrivateEventParams;
+import ru.practicum.service.EventRequestService;
 import ru.practicum.service.EventService;
 
 import java.util.List;
@@ -21,6 +19,7 @@ import java.util.List;
 public class PrivateEventController {
 
     private final EventService service;
+    private final EventRequestService requestService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -43,8 +42,24 @@ public class PrivateEventController {
 
     @PatchMapping(path = "/{eventId}")
     public EventFullDto updateUserEventById(@PathVariable Long userId, @PathVariable Long eventId,
-                                            UpdateEventUserRequest dto) {
+                                            @RequestBody @Valid UpdateEventUserRequest dto) {
         log.info("PrivateEventController - Обновление события с id: {}, пользователем с id: {}", userId, eventId);
         return service.updateUserEventById(userId, eventId, dto);
+    }
+
+    @GetMapping(path = "/{eventId}/requests")
+    public List<ParticipationRequestDto> findRequestsParticipationInEvent(@PathVariable Long userId,
+                                                                          @PathVariable Long eventId) {
+        log.info("PrivateEventController - Получение запросов на участие в событии с id: {}," +
+                 " пользователя с id: {}", userId, eventId);
+        return requestService.findRequestsParticipationInEvent(userId, eventId);
+    }
+
+    @PatchMapping(path = "/{eventId}/requests")
+    public EventRequestStatusUpdateResult updateRequestStatus(@PathVariable Long userId, @PathVariable Long eventId,
+                                                              @RequestBody @Valid EventRequestStatusUpdateRequest dto) {
+        log.info("PrivateEventController - Изменение статуса запроса на: {}, в событии с id: {}," +
+                 " пользователя с id: {}", dto, eventId, userId);
+        return requestService.updateRequestStatus(userId, eventId, dto);
     }
 }
