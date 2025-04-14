@@ -23,20 +23,20 @@ public class AdminUserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto addUser(@RequestBody @Valid NewUserRequest newUserRequest) {
-        log.info("AdminUserController - Добавление пользователя: {}", newUserRequest);
+        log.info("AdminUserController - Добавление админом пользователя: {}", newUserRequest);
         return service.save(newUserRequest);
     }
 
     @GetMapping
     public List<UserDto> findAll(@ModelAttribute @Valid AdminUserParams params) {
-        log.info("AdminUserController - Получение пользователей по параметрам: {}", params);
+        log.info("AdminUserController - Получение админом пользователей по параметрам: {}", params);
         return service.findAll(params);
     }
 
     @DeleteMapping(path = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
-        log.info("AdminUserController - Удаление пользователя с id: {}", userId);
+        log.info("AdminUserController - Удаление админом пользователя с id: {}", userId);
         service.deleteById(userId);
     }
 }

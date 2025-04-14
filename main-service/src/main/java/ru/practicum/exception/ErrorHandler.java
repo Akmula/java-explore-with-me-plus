@@ -37,7 +37,7 @@ public class ErrorHandler {
                 HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
     }
 
-    @ExceptionHandler({MissingServletRequestParameterException.class, IllegalStateException.class})
+    @ExceptionHandler({BadRequestException.class, MissingServletRequestParameterException.class, IllegalStateException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handlerBadRequestException(final BadRequestException e) {
         String stackTrace = getStackTrace(e);

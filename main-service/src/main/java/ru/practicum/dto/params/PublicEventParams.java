@@ -16,9 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PublicEventParams {
-    private String text;
     private List<Long> categories;
     private Boolean paid;
+    private String text;
     private String sort;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

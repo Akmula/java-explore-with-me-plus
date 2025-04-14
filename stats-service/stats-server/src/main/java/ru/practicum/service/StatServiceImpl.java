@@ -1,5 +1,6 @@
 package ru.practicum.service;
 
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -26,9 +27,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class StatServiceImpl implements StatService {
 
+    private final EntityManager entityManager;
     private final StatRepository repository;
     private final EndpointHitMapper mapper;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -51,22 +52,20 @@ public class StatServiceImpl implements StatService {
         }
 
         QHit qHit = QHit.hit;
+        JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
 
-        BooleanExpression where = qHit.timestamp.between(startTime, endTime);
+        BooleanExpression where = qHit.timestamp.before(endTime).and(qHit.timestamp.after(startTime));
 
         if (uris != null && !uris.isEmpty()) {
             where = where.and(qHit.uri.in(uris));
         }
 
-        JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
-
         if (unique) {
             query.select(qHit.app, qHit.uri, qHit.ip.countDistinct())
-                    .from(qHit)
-                    .where(where)
+                    .from(qHit).where(where)
                     .groupBy(qHit.app, qHit.uri)
-                    .orderBy(qHit.ip.countDistinct()
-                            .desc());
+                    .orderBy(qHit.ip.countDistinct().desc());
+
         } else {
             query.select(qHit.app, qHit.uri, qHit.ip.count())
                     .from(qHit)
@@ -79,5 +78,6 @@ public class StatServiceImpl implements StatService {
         List<Tuple> tuples = query.fetch();
 
         return tuples.stream().map(mapper::toViewStats).collect(Collectors.toList());
+
     }
 }

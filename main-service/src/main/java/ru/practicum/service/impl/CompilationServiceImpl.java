@@ -45,9 +45,9 @@ public class CompilationServiceImpl implements CompilationService {
         Pageable pageable = PageRequest.of(from / size, size);
 
         Page<Compilation> compilations;
-        BooleanExpression where;
+
         if (pinned != null) {
-            where = QCompilation.compilation.pinned.eq(pinned);
+            BooleanExpression where = QCompilation.compilation.pinned.eq(pinned);
             compilations = compilationRepository.findAll(where, pageable);
         } else {
             compilations = compilationRepository.findAll(pageable);
@@ -89,7 +89,7 @@ public class CompilationServiceImpl implements CompilationService {
         Boolean pinned = dto.getPinned();
         String title = dto.getTitle();
 
-        if (!eventIds.isEmpty()) {
+        if (eventIds != null && !eventIds.isEmpty()) {
             List<Event> events = eventRepository.findAllById(eventIds);
             Set<Event> eventsSet = new HashSet<>(events);
             compilation.setEvents(eventsSet);

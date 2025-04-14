@@ -18,8 +18,8 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminEventParams {
     private List<Long> users;
-    private List<EventState> states;
     private List<Long> categories;
+    private List<EventState> states;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime rangeStart;

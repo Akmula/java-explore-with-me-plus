@@ -34,24 +34,28 @@ import static ru.practicum.dto.enums.EventState.PUBLISHED;
 @Transactional(readOnly = true)
 public class EventRequestServiceImpl implements EventRequestService {
 
-    private final EventRepository eventRepository;
     private final EventRequestRepository eventRequestRepository;
+    private final EventRepository eventRepository;
     private final UserRepository userRepository;
 
     @Override
     @Transactional
     public ParticipationRequestDto addEventRequest(Long userId, Long eventId) {
+        log.info("Добавление запроса на участие в событии с id: {}", eventId);
+
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(eventId));
         Request userRequest = eventRequestRepository.findRequestsByRequester_IdAndEvent_Id(userId, eventId);
+
         if (event.getInitiator().equals(user)) {
-            throw new ValidationException("Автор события не может подать заявку на участие в событии с id: " + eventId);
+            throw new ConflictException("Автор события не может подать заявку на участие в событии с id: " + eventId);
         }
 
         if (!event.getState().equals(PUBLISHED)) {
-            throw new ConflictException("Событие не опубликовано!");
+            throw new ConflictException("Нельзя опубликовать, опубликованное событие!");
         }
-        if (userRequest.getRequester().equals(user)) {
+
+        if (userRequest != null && userRequest.getRequester().equals(user)) {
             throw new ConflictException("Заявка на участие уже добавлена");
         }
 
@@ -61,6 +65,12 @@ public class EventRequestServiceImpl implements EventRequestService {
             request.setStatus(CONFIRMED);
         }
 
+        long confirmedRequests = eventRequestRepository.countDistinctByEvent_IdAndStatusEquals(eventId, CONFIRMED);
+
+        if (event.getParticipantLimit() != 0 && confirmedRequests >= event.getParticipantLimit()) {
+            throw new ConflictException("Количество участников достигло лимита: " + confirmedRequests);
+        }
+
         Request savedRequest = eventRequestRepository.save(request);
 
         return RequestMapper.toParticipationRequestDto(savedRequest);
@@ -68,40 +78,57 @@ public class EventRequestServiceImpl implements EventRequestService {
 
     @Override
     public List<ParticipationRequestDto> findAllRequestByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
+        log.info("Получение всех запросов пользователя с id: {}", userId);
+
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
+
         BooleanExpression where = QRequest.request.requester.id.eq(userId);
         Iterable<Request> requests = eventRequestRepository.findAll(where);
-        List<ParticipationRequestDto> participationRequestDtos = new ArrayList<>();
+        List<ParticipationRequestDto> requestDtoList = new ArrayList<>();
+
         for (Request request : requests) {
-            participationRequestDtos.add(RequestMapper.toParticipationRequestDto(request));
+            requestDtoList.add(RequestMapper.toParticipationRequestDto(request));
         }
-        return participationRequestDtos;
+
+        return requestDtoList;
     }
 
     @Override
     @Transactional
     public ParticipationRequestDto cancelRequest(Long requestId, Long userId) {
+        log.info("Отмена запроса на участие в событии с id: {}", requestId);
+
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
-        Request request = eventRequestRepository.findById(requestId).orElseThrow(() -> new NotFoundException(requestId));
+        Request request = eventRequestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException(requestId));
+
         if (!request.getRequester().equals(user)) {
             throw new ValidationException("Пользователь с id: " + userId + "," +
                                           " не подавал заявку на участие в событии с id: " + requestId);
         }
+
         request.setStatus(CANCELED);
+
         return RequestMapper.toParticipationRequestDto(eventRequestRepository.save(request));
     }
 
     @Override
     public List<ParticipationRequestDto> findRequestsParticipationInEvent(Long userId, Long eventId) {
         log.info("EventRequestService - получение информации о запросах на участие в событии с id: {}!", eventId);
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
+
+        userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
+        eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(eventId));
+
         BooleanExpression where = QRequest.request.event.initiator.id.eq(userId);
         Iterable<Request> requests = eventRequestRepository.findAll(where);
-        List<ParticipationRequestDto> participationRequestDtos = new ArrayList<>();
+
+        List<ParticipationRequestDto> requestDtoList = new ArrayList<>();
+
         for (Request request : requests) {
-            participationRequestDtos.add(RequestMapper.toParticipationRequestDto(request));
+            requestDtoList.add(RequestMapper.toParticipationRequestDto(request));
         }
-        return participationRequestDtos;
+
+        return requestDtoList;
     }
 
     @Override
@@ -109,6 +136,7 @@ public class EventRequestServiceImpl implements EventRequestService {
     public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
                                                               EventRequestStatusUpdateRequest dto) {
         log.info("EventRequestService - изменение статуса заявок на участие в событии с id: {}", eventId);
+
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException(userId));
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException(eventId));
 
@@ -125,20 +153,24 @@ public class EventRequestServiceImpl implements EventRequestService {
         BooleanExpression where = QRequest.request.event.id.eq(eventId);
 
         Iterable<Request> requests = eventRequestRepository.findAll(where);
+
         long currentConfirmed = 0;
+
         for (Request request : requests) {
             if (request.getStatus().equals(CONFIRMED)) {
                 currentConfirmed++;
             }
         }
-        if (currentConfirmed == limit) {
-            throw new ValidationException("Достигнут лимит запросов на участие для этого события: " + eventId);
+
+        if (currentConfirmed >= limit) {
+            throw new ConflictException("Достигнут лимит запросов на участие для этого события: " + eventId);
         }
 
         for (Request request : requests) {
             for (Long requestId : requestIds) {
                 if (requestId.equals(request.getId()) && !request.getStatus().equals(PENDING)) {
-                    throw new ConflictException("Статус может быть изменен только для запросов, которые находятся в состоянии ожидания: " + request.getStatus());
+                    throw new ConflictException("Статус может быть изменен только для запросов," +
+                                                " которые находятся в состоянии ожидания: " + request.getStatus());
                 }
             }
         }
@@ -156,7 +188,7 @@ public class EventRequestServiceImpl implements EventRequestService {
                         confirmedRequests.add(RequestMapper.toParticipationRequestDto(request));
                     }
                 } else if (currentConfirmed >= limit) {
-                    throw new ConflictException("The request limit for this event has been reached: " + event);
+                    throw new ConflictException("Достигнут лимит запросов на участие для этого события: " + eventId);
                 } else {
                     for (Request request : requests) {
                         if (limit > currentConfirmed) {
@@ -189,6 +221,5 @@ public class EventRequestServiceImpl implements EventRequestService {
         result.setRejectedRequests(rejectedRequests);
 
         return result;
-
     }
 }
