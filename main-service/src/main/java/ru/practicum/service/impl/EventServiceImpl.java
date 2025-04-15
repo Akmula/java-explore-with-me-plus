@@ -396,7 +396,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = LocalDateTime.now();
 
         RequestParams params = new RequestParams();
-        params.setStart(start);
+        params.setStart(start.minusSeconds(1));
         params.setEnd(end);
         params.setUris(uris);
         params.setUnique(true);
@@ -438,6 +438,7 @@ public class EventServiceImpl implements EventService {
                 .app("ewm-service")
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
+                .timestamp(LocalDateTime.now())
                 .build());
     }
 }

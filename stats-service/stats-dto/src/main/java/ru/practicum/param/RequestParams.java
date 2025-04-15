@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,9 +17,11 @@ import java.util.List;
 public class RequestParams {
 
     @NotNull(message = "Дата старта должна быть указана.")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime start;
 
     @NotNull(message = "Дата окончания должна быть указана.")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime end;
 
     @Builder.Default

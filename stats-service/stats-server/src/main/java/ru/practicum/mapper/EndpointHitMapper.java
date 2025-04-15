@@ -6,7 +6,6 @@ import ru.practicum.EndpointHit;
 import ru.practicum.ViewStats;
 import ru.practicum.entity.Hit;
 
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Component
@@ -15,9 +14,9 @@ public class EndpointHitMapper {
     public Hit endpointToHit(EndpointHit endpointHit) {
         Hit hit = new Hit();
         hit.setApp(endpointHit.getApp());
-        hit.setIp(endpointHit.getIp());
         hit.setUri(endpointHit.getUri());
-        hit.setTimestamp(LocalDateTime.now());
+        hit.setIp(endpointHit.getIp());
+        hit.setTimestamp(endpointHit.getTimestamp());
         return hit;
     }
 

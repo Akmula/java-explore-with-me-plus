@@ -17,6 +17,15 @@ import java.util.Objects;
 @RestControllerAdvice
 public class ErrorHandler {
 
+    @ExceptionHandler({BadRequestException.class, MissingServletRequestParameterException.class,
+            IllegalStateException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handlerBadRequestException(final BadRequestException e) {
+        String stackTrace = getStackTrace(e);
+        log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
+        return new ApiError("Запрос составлен некорректно", e.getMessage(),
+                HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -25,15 +34,6 @@ public class ErrorHandler {
         log.error("Ошибка валидации: 400 BAD_REQUEST - {}", stackTrace);
         return new ApiError("Запрос составлен некорректно",
                 Objects.requireNonNull(Objects.requireNonNull(e.getFieldError()).getDefaultMessage()),
-                HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
-    }
-
-    @ExceptionHandler({MissingServletRequestParameterException.class, IllegalStateException.class})
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handlerBadRequestException(final BadRequestException e) {
-        String stackTrace = getStackTrace(e);
-        log.error("Ошибка: 400 BAD_REQUEST - {}", stackTrace);
-        return new ApiError("Запрос составлен некорректно", e.getMessage(),
                 HttpStatus.BAD_REQUEST.name(), LocalDateTime.now());
     }
 

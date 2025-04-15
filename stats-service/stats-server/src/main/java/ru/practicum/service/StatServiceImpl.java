@@ -19,6 +19,7 @@ import ru.practicum.repository.StatRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,7 +48,11 @@ public class StatServiceImpl implements StatService {
         List<String> uris = requestParams.getUris();
         boolean unique = requestParams.isUnique();
 
-        if (startTime.isAfter(endTime)) {
+        if (startTime == null || endTime == null) {
+            throw new BadRequestException("Даты начала и окончания должны быть указаны!");
+        }
+
+        if (Objects.requireNonNull(startTime).isAfter(endTime)) {
             throw new BadRequestException("Дата начала не может быть позже даты окончания!");
         }
 
