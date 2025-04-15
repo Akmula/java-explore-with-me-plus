@@ -435,7 +435,7 @@ public class EventServiceImpl implements EventService {
         log.info("Сохранение Hit - {}", request.getRemoteAddr());
 
         statsClient.saveHit(EndpointHit.builder()
-                .app("ewm-service")
+                .app("ewm-main-service")
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now())
