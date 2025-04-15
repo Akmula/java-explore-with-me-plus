@@ -59,25 +59,24 @@ public class StatServiceImpl implements StatService {
         QHit qHit = QHit.hit;
         JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
 
-        BooleanExpression where = qHit.timestamp.before(endTime).and(qHit.timestamp.after(startTime));
+        BooleanExpression where = qHit.timestamp.between(startTime, endTime);
 
         if (uris != null && !uris.isEmpty()) {
             where = where.and(qHit.uri.in(uris));
         }
 
         if (unique) {
-            query.select(qHit.app, qHit.uri, qHit.ip.countDistinct())
+            query.select(qHit.ip.countDistinct(), qHit.app, qHit.uri)
                     .from(qHit).where(where)
                     .groupBy(qHit.app, qHit.uri)
                     .orderBy(qHit.ip.countDistinct().desc());
 
         } else {
-            query.select(qHit.app, qHit.uri, qHit.ip.count())
+            query.select(qHit.ip.count(), qHit.app, qHit.uri)
                     .from(qHit)
                     .where(where)
                     .groupBy(qHit.app, qHit.uri)
-                    .orderBy(qHit.ip.count()
-                            .desc());
+                    .orderBy(qHit.ip.count().desc());
         }
 
         List<Tuple> tuples = query.fetch();

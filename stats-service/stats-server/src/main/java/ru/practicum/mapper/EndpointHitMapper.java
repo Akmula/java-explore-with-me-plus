@@ -22,9 +22,9 @@ public class EndpointHitMapper {
 
     public ViewStats toViewStats(Tuple tuple) {
         ViewStats viewStats = new ViewStats();
-        viewStats.setApp(tuple.get(0, String.class));
-        viewStats.setUri(tuple.get(1, String.class));
-        viewStats.setHits(Objects.requireNonNull(tuple.get(2, Long.class)));
+        viewStats.setHits(Objects.requireNonNull(tuple.get(0, Long.class)));
+        viewStats.setApp(tuple.get(1, String.class));
+        viewStats.setUri(tuple.get(2, String.class));
         return viewStats;
     }
 }
