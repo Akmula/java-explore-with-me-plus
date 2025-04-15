@@ -396,7 +396,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = LocalDateTime.now();
 
         RequestParams params = new RequestParams();
-        params.setStart(start.minusSeconds(1));
+        params.setStart(start.minusNanos(1));
         params.setEnd(end);
         params.setUris(uris);
         params.setUnique(true);
