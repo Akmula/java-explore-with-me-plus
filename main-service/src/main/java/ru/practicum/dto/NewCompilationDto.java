@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.UniqueElements;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -17,7 +18,8 @@ import java.util.List;
 public class NewCompilationDto {
 
     @UniqueElements
-    private List<Long> events;
+    @Builder.Default
+    private List<Long> events = new ArrayList<>();
 
     @Builder.Default
     private boolean pinned = false;

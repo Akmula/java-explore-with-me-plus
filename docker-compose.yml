@@ -9,33 +9,21 @@ services:
       - stats-db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/stats-db
-      - POSTGRES_USER=stats
-      - POSTGRES_PASSWORD=stats
-      - DB_NAME=stats-db
       - SPRING_DATASOURCE_USERNAME=stats
       - SPRING_DATASOURCE_PASSWORD=stats
-      - DB_HOST=stats-db
-      - DB_PORT=6432
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:9090/actuator/health || exit 1
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 5
+      - STATS_SERVER_URL=http://stats-server:9090
 
   stats-db:
     image: postgres:16.1
     container_name: stats-db
     ports:
-      - "6432:5432"
-    volumes:
-      - /volumes/postgres:/stats-service
+      - "6541:5432"
     environment:
       - POSTGRES_DB=stats-db
       - POSTGRES_USER=stats
       - POSTGRES_PASSWORD=stats
     healthcheck:
-      test: pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB
+      test: pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER
       interval: 30s
       timeout: 5s
       start_period: 30s
@@ -52,27 +40,15 @@ services:
       - stats-server
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm-db
-      - POSTGRES_USER=ewm
-      - POSTGRES_PASSWORD=ewm
-      - DB_NAME=ewm-db
       - SPRING_DATASOURCE_USERNAME=ewm
       - SPRING_DATASOURCE_PASSWORD=ewm
-      - DB_HOST=ewm-db
-      - DB_PORT6433
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 5
+      - STATS_SERVER_URL=http://stats-server:9090
 
   ewm-db:
     image: postgres:16.1
     container_name: ewm-db
     ports:
-      - "6433:5432"
-    volumes:
-      - /volumes/postgres:/main-service
+      - "6542:5432"
     environment:
       - POSTGRES_DB=ewm-db
       - POSTGRES_USER=ewm

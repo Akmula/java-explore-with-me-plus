@@ -1,6 +1,5 @@
 package ru.practicum.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,13 +20,13 @@ public class StatsController {
 
     @PostMapping(path = "/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public void saveHit(@Valid @RequestBody EndpointHit hit) {
+    public void saveHit(@RequestBody EndpointHit hit) {
         log.info("StatsController - сохранение hit {}", hit);
         service.save(hit);
     }
 
     @GetMapping(path = "/stats")
-    public List<ViewStats> getStats(@ModelAttribute @Valid RequestParams requestParams) {
+    public List<ViewStats> getStats(@ModelAttribute RequestParams requestParams) {
         log.info("StatsController - получение статистики с параметрами: {}", requestParams);
         return service.getViewStats(requestParams);
     }

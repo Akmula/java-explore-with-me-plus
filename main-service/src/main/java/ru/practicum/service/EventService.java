@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface EventService {
 
-    // private Endpoint
+    // private
 
     List<EventShortDto> findAllByUserId(Long userId, PrivateEventParams params);
 
@@ -20,13 +20,13 @@ public interface EventService {
 
     EventFullDto updateUserEventById(Long userId, Long eventId, UpdateEventUserRequest dto);
 
-    // public Endpoint
+    // public
 
     List<EventShortDto> searchEvents(PublicEventParams params, HttpServletRequest request);
 
     EventFullDto findEventById(Long eventId, HttpServletRequest request);
 
-    // admin Endpoint
+    // admin
 
     List<EventFullDto> search(AdminEventParams params);
 

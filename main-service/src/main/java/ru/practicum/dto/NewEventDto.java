@@ -18,14 +18,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class NewEventDto {
 
-    @NotBlank(message = "Краткое описание события не может быть пустым!")
+    @NotBlank(message = " Краткое описание события должно быть указано!")
     @Size(min = 20, max = 2000, message = "Количество символов должно быть от 20 до 2000!")
     private String annotation; // Краткое описание
 
     @NotNull(message = "Категория должна быть указана!")
     private Long category; // Категория
 
-    @NotBlank(message = "Полное описание события не может быть пустым!")
+    @NotBlank(message = " Полное описание события должно быть указано!")
     @Size(min = 20, max = 7000, message = "Количество символов должно быть от 20 до 7000!")
     private String description; // Полное описание события
 
@@ -34,12 +34,15 @@ public class NewEventDto {
 
     Location location; // Широта и долгота места проведения события
 
-    Boolean paid; // Нужно ли оплачивать участие
+    @Builder.Default
+    Boolean paid = false; // Нужно ли оплачивать участие
 
+    @Builder.Default
     @PositiveOrZero(message = "Лимит участников должен быть равен 0 или больше")
-    Integer participantLimit; // Ограничение на количество участников. Значение 0 - означает отсутствие ограничения
+    Integer participantLimit = 0; // Ограничение на количество участников. Значение 0 - означает отсутствие ограничения
 
-    Boolean requestModeration; // Нужна ли пре-модерация заявок на участие
+    @Builder.Default
+    Boolean requestModeration = true; // Нужна ли пре-модерация заявок на участие
 
     @NotBlank(message = "Заголовок события не может быть пустым!")
     @Size(min = 3, max = 120, message = "Количество символов должно быть от 3 до 120!")

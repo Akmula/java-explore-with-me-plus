@@ -6,10 +6,11 @@ import org.springframework.context.annotation.Configuration;
 import ru.practicum.StatsClient;
 
 @Configuration
-public class StatsConfig {
+public class StatsClientConfig {
 
     @Bean
-    public StatsClient getClient(@Value("${stats-server-url}") String statsServerUrl) {
-        return new StatsClient(statsServerUrl);
+    public StatsClient statsClient(@Value("${stats-server.url}") String statsServerUrl,
+                                   @Value("${application.name}") String appName) {
+        return new StatsClient(statsServerUrl, appName);
     }
 }
