@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.EndpointHit;
 import ru.practicum.StatsClient;
 import ru.practicum.ViewStats;
 import ru.practicum.dto.*;
@@ -396,7 +395,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime end = LocalDateTime.now();
 
         RequestParams params = new RequestParams();
-        params.setStart(start.minusSeconds(1));
+        params.setStart(start);
         params.setEnd(end);
         params.setUris(uris);
         params.setUnique(true);
@@ -432,13 +431,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private void saveHit(HttpServletRequest request) {
-        log.info("Сохранение Hit - {}", request.getRemoteAddr());
-
-        statsClient.saveHit(EndpointHit.builder()
-                .app("ewm-main-service")
-                .uri(request.getRequestURI())
-                .ip(request.getRemoteAddr())
-                .timestamp(LocalDateTime.now())
-                .build());
+        log.info("Сохранение Hit - {}", request);
+        statsClient.saveHit(request);
     }
 }

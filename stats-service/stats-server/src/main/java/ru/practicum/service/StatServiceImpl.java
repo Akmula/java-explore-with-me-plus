@@ -70,7 +70,6 @@ public class StatServiceImpl implements StatService {
                     .from(qHit).where(where)
                     .groupBy(qHit.app, qHit.uri)
                     .orderBy(qHit.ip.countDistinct().desc());
-
         } else {
             query.select(qHit.ip.count(), qHit.app, qHit.uri)
                     .from(qHit)
@@ -82,6 +81,5 @@ public class StatServiceImpl implements StatService {
         List<Tuple> tuples = query.fetch();
 
         return tuples.stream().map(mapper::toViewStats).collect(Collectors.toList());
-
     }
 }
