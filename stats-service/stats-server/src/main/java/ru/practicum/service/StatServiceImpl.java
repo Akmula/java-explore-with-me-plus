@@ -1,5 +1,6 @@
 package ru.practicum.service;
 
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -18,6 +19,7 @@ import ru.practicum.repository.StatRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,46 +28,55 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class StatServiceImpl implements StatService {
 
+    private final EntityManager entityManager;
     private final StatRepository repository;
     private final EndpointHitMapper mapper;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public void save(EndpointHit hit) {
-        log.info("Saving hit: {}", hit);
+        log.info("StatService - сохранение hit: {}", hit);
         repository.save(mapper.endpointToHit(hit));
     }
 
     @Override
     public List<ViewStats> getViewStats(RequestParams requestParams) {
-        log.info("Getting view stats");
+        log.info("StatService - получение статистики с параметрами: {}", requestParams);
 
         LocalDateTime startTime = requestParams.getStart();
         LocalDateTime endTime = requestParams.getEnd();
         List<String> uris = requestParams.getUris();
         boolean unique = requestParams.isUnique();
 
-        if (startTime.isAfter(endTime)) {
+        if (startTime == null || endTime == null) {
+            throw new BadRequestException("Даты начала и окончания должны быть указаны!");
+        }
+
+        if (Objects.requireNonNull(startTime).isAfter(endTime)) {
             throw new BadRequestException("Дата начала не может быть позже даты окончания!");
         }
 
         QHit qHit = QHit.hit;
+        JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
+
         BooleanExpression where = qHit.timestamp.between(startTime, endTime);
 
         if (uris != null && !uris.isEmpty()) {
             where = where.and(qHit.uri.in(uris));
         }
 
-        JPAQuery<Tuple> query = new JPAQuery<>(entityManager);
-
         if (unique) {
-            query.select(qHit.app, qHit.uri, qHit.ip.countDistinct());
+            query.select(qHit.ip.countDistinct(), qHit.app, qHit.uri)
+                    .from(qHit).where(where)
+                    .groupBy(qHit.app, qHit.uri)
+                    .orderBy(qHit.ip.countDistinct().desc());
         } else {
-            query.select(qHit.app, qHit.uri, qHit.ip.count());
+            query.select(qHit.ip.count(), qHit.app, qHit.uri)
+                    .from(qHit)
+                    .where(where)
+                    .groupBy(qHit.app, qHit.uri)
+                    .orderBy(qHit.ip.count().desc());
         }
-
-        query.from(qHit).where(where).groupBy(qHit.app, qHit.uri).orderBy(qHit.ip.count().desc());
 
         List<Tuple> tuples = query.fetch();
 

@@ -1,52 +1,61 @@
 package ru.practicum;
 
-import org.springframework.beans.factory.annotation.Value;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import ru.practicum.param.RequestParams;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Component
+@Slf4j
 public class StatsClient {
 
-    @Value("${stats-server.url}")
-    private static String STATS_SERVER_URL;
+    private final RestClient restClient;
+    private final String appName;
 
-    private final RestClient restClient = RestClient.create();
+    public StatsClient(String statsServerUrl, String appName) {
+        this.restClient = RestClient.builder()
+                .baseUrl(statsServerUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+        this.appName = appName;
+    }
 
-  /*  public StatsClient(RestClient restClient) {
-        this.restClient = restClient;
-    }/**/
+    public void saveHit(HttpServletRequest request) {
+        log.info("StatsClient - сохранение HttpServletRequest - {}", request);
 
-    public void save(EndpointHit endpointHit) {
+        EndpointHit hit = new EndpointHit();
+        hit.setUri(request.getRequestURI());
+        hit.setApp(appName);
+        hit.setIp(request.getRemoteAddr());
+        hit.setTimestamp(LocalDateTime.now());
+
         String uri = UriComponentsBuilder
-                .fromHttpUrl(STATS_SERVER_URL)
-                .path("/hit")
+                .fromPath("/hit")
                 .build()
                 .toUriString();
 
         restClient.post()
                 .uri(uri)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .body(endpointHit)
+                .body(hit)
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {
-                });
+                .toEntity(EndpointHit.class);
     }
 
-    public List<ViewStats> get(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+    public List<ViewStats> getStats(RequestParams params) {
+        log.info("StatsClient - получение статистики с параметрами: {} ", params);
+
         String uri = UriComponentsBuilder
-                .fromHttpUrl(STATS_SERVER_URL)
-                .path("/stats")
-                .queryParam("start", start)
-                .queryParam("end", end)
-                .queryParam("uris", uris)
-                .queryParam("unique", unique)
+                .fromPath("/stats")
+                .queryParam("start", params.getStart())
+                .queryParam("end", params.getEnd())
+                .queryParam("uris", params.getUris())
+                .queryParam("unique", params.isUnique())
                 .build()
                 .toUriString();
 

@@ -1,6 +1,5 @@
 package ru.practicum.controller;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,8 +20,8 @@ public class StatsController {
 
     @PostMapping(path = "/hit")
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@Valid @RequestBody EndpointHit hit) {
-        log.info("StatsController - сохранение endpoint hit {}", hit);
+    public void saveHit(@RequestBody EndpointHit hit) {
+        log.info("StatsController - сохранение hit {}", hit);
         service.save(hit);
     }
 
